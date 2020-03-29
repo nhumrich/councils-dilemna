@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "councils-dilemna"
+version = "0.1.0"
+description = ""
+authors = ["Nick Humrich <nick.humrich@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.53.0"
+pytest = "^5.4.1"
+aiofiles = "^0.4.0"
+uvicorn = "^0.11.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

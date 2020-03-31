@@ -8,12 +8,15 @@ class Game:
         self.status = 'SETUP'
         self.player_turn = None
 
-    def addPlayer(self, user_id):
+    def add_player(self, user_id):
         self.players.append(playerId)
 
-    def removePlayer(self, user_id):
+    def remove_player(self, user_id):
         if user_id in self.players:
             self.players.remove(user_id)
 
-    def startGame(self):
+    def get_players(self):
+        return self.players
+
+    def start_game(self):
         self.status = 'IN_PROGRESS'

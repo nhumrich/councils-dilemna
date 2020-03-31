@@ -1,17 +1,20 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Councils Delemna powered by Vue.js"/>
+    <CreateGame />
+    <HelloWorld msg='hi'/>
   </div>
 </template>
 
 <script>
+import CreateGame from './components/CreateGame.vue'
 import HelloWorld from './components/HelloWorld.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    HelloWorld,
+    CreateGame
   }
 }
 </script>

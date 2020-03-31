@@ -13,3 +13,13 @@ export function spendMoney ({playerId, amount, destination}) {
     }),
   })
 }
+
+export function createGame({userName}) {
+  console.log('userName', userName)
+  return fetch(`${API_BASE}/create_game`, {
+    method: 'POST',
+    body: JSON.stringify({
+      user_name: userName
+    })
+  })
+}

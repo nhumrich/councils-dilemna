@@ -52,20 +52,20 @@ async def read_item(spend: Spend):
     return message
 
 @app.post('/api/create_game')
-async def create_game(request):
-    data = await request.json()
-    user_name = data['user_name']
+async def create_game(user_name: str):
+    # data = await request.json()
+    # user_name = data['user_name']
     print(user_name)
-    game_number = random.randint(100000, 999999)
-    user = User(user_name)
-    players[user.id] = user
-    while game_number in games:
-        game_number = random.randint(100000, 999999)
-
-    game = Game(user.id)
-    games[game_number] = game
-    user.game_id = game_number
-    return 'yay'
+    # game_number = random.randint(100000, 999999)
+    # user = User(user_name)
+    # players[user.id] = user
+    # while game_number in games:
+    #     game_number = random.randint(100000, 999999)
+    #
+    # game = Game(user.id)
+    # games[game_number] = game
+    # user.game_id = game_number
+    return {'message': 'yay'}
     # return {
     #     'user_id': f'{user.id}'
     #     'game_id': f'{game_number}',

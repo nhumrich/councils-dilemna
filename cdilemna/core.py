@@ -51,27 +51,27 @@ async def read_item(spend: Spend):
     await EVENT_QUEUE.put(message)
     return message
 
+class Game_to_create(BaseModel):
+    user_name: str
+
 @app.post('/api/create_game')
-async def create_game(user_name: str):
-    # data = await request.json()
-    # user_name = data['user_name']
-    print(user_name)
-    # game_number = random.randint(100000, 999999)
-    # user = User(user_name)
-    # players[user.id] = user
-    # while game_number in games:
-    #     game_number = random.randint(100000, 999999)
-    #
-    # game = Game(user.id)
-    # games[game_number] = game
-    # user.game_id = game_number
-    return {'message': 'yay'}
-    # return {
-    #     'user_id': f'{user.id}'
-    #     'game_id': f'{game_number}',
-    #     'game_owner': f'{user.id}',
-    #     'players': f'{games[game_number].get_players()}'
-    # }
+async def create_game(game_to_create: Game_to_create):
+    user_name = game_to_create.user_name
+    game_number = random.randint(100000, 999999)
+    user = User(user_name)
+    players[user.id] = user
+    while game_number in games:
+        game_number = random.randint(100000, 999999)
+
+    game = Game(user.id)
+    games[game_number] = game
+    user.game_id = game_number
+    return {
+        'user_id': f'{user.id}',
+        'game_id': f'{game_number}',
+        'game_owner': f'{user.id}',
+        'players': f'{games[game_number].get_players()}'
+    }
 
 
 

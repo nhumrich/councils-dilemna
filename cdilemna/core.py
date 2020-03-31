@@ -13,16 +13,10 @@ EVENT_QUEUE = asyncio.Queue()
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    return """
-    <html>
-        <head>
-            <title>Councils Dilemna</title>
-        </head>
-        <body>
-            <h1>Welcome to Councils Dilemna!</h1>
-        </body>
-    </html>
-    """
+    with open('static/dist/index.html') as f:
+        contents = f.read()
+        print(contents)
+        return contents
 
 
 class Spend(BaseModel):

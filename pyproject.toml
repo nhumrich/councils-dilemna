@@ -6,7 +6,7 @@ authors = ["Nick Humrich <nick.humrich@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 fastapi = "^0.53.0"
 pytest = "^5.4.1"
 aiofiles = "^0.4.0"

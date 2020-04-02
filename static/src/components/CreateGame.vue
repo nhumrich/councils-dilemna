@@ -1,7 +1,7 @@
 <template>
   <div class="create-game">
     <h1>Create a game</h1>
-    <input v-model='playerName'>
+    <input placeholder='house name' v-model='playerName'>
     <button v-on:click="createGame">
       Create game
     </button>

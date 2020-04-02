@@ -73,7 +73,26 @@ async def create_game(game_to_create: Game_to_create):
         'players': f'{games[game_number].get_players()}'
     }
 
+class JoinGame(BaseModel):
+    game_id: int
+    player_name: str
 
+@app.post('/api/join_game')
+async def join_game(joinable: JoinGame):
+    player_name = joinable.player_name
+    game_id = joinable.game_id
+    game = games[game_id]
+    # TODO ensure game exists
+    user = User(player_name)
+    players[user.id] = user
+    # TODO ensure that we only add the player if the game is in 'SETUP' status
+    game.add_player(user.id)
+    EVENT_QUEUE.put(f'{player_name} joined the game {game_id}')
+    return {
+        'user_id': f'{user.id}',
+        'players': f'{game.get_players()}',
+        'game_owner': f'{game.get_owner_id()}'
+    }
 
 
 async def estream():

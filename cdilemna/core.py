@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -89,7 +89,7 @@ async def join_game(joinable: JoinGame):
     players[user.id] = user
     # TODO ensure that we only add the player if the game is in 'SETUP' status
     game.add_player(user.id)
-    EVENT_QUEUE.put(
+    await EVENT_QUEUE.put(
         {
             'type': 'GAME',
             'message': f'{player_name} joined the game {game_id}',
@@ -102,6 +102,17 @@ async def join_game(joinable: JoinGame):
         'game_owner': f'{game.get_owner_id()}',
         'game_id': f'{game_id}'
     }
+
+@app.websocket('/ws/game/{game_id}')
+async def websocket_endpoint(websocket: WebSocket, game_id: int):
+    await websocket.accept()
+    game_queue = game_queues[game_id]
+    game = games[game_id]
+    await websocket.send_text({f'{json.dumps(game.__dict__)}'})
+    while True:
+        event = await game_queue.get()
+        await websocket.send_text(f'{event}')
+        game_queue.task_done()
 
 
 async def estream():
@@ -130,7 +141,7 @@ async def worker(queue):
             # TODO make sure game/queue exists
             game_queue = game_queues[event.game_id]
             game = games[game_id]
-            game_queue.put(game)
+            await game_queue.put(game)
 
         queue.task_done()
 

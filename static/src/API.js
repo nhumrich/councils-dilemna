@@ -1,4 +1,6 @@
+import { webSocket } from 'rxjs/webSocket'
 const API_BASE = process.env.NODE_ENV === 'production' ? './api' : 'http://localhost:8000/api'
+const WS_BASE = process.env.NODE_ENV === 'production' ? `ws://${window.location.origin}/ws` : 'ws://localhost:8000/ws'
 
 export function spendMoney ({playerId, amount, destination}) {
   console.log('playerId', playerId)
@@ -36,4 +38,8 @@ export function joinGame({userName, gameId}) {
       game_id: gameId
     })
   })
+}
+
+export function createGame$(gameId) {
+  return webSocket(`${WS_BASE}/game/${gameId}`)
 }

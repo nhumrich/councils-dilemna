@@ -1,20 +1,16 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <CreateGame />
-    <HelloWorld msg='hi'/>
+    <Root />
   </div>
 </template>
 
 <script>
-import CreateGame from './components/CreateGame.vue'
-import HelloWorld from './components/HelloWorld.vue'
+import Root from './components/Root.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
-    CreateGame
+    Root
   }
 }
 </script>

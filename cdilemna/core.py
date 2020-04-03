@@ -108,11 +108,14 @@ async def websocket_endpoint(websocket: WebSocket, game_id: int):
     await websocket.accept()
     game_queue = game_queues[game_id]
     game = games[game_id]
-    await websocket.send_text({f'{json.dumps(game.__dict__)}'})
+    await websocket.send_json(game.__dict__)
     while True:
-        event = await game_queue.get()
-        await websocket.send_text(f'{event}')
-        game_queue.task_done()
+        await asyncio.sleep(5)
+        message = {'message': 'hello'}
+        await websocket.send_json(message)
+        # event = await game_queue.get()
+        # await websocket.send_text(f'{event}')
+        # game_queue.task_done()
 
 
 async def estream():

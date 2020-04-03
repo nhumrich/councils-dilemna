@@ -14,6 +14,7 @@ app = FastAPI()
 
 games = {}
 players = {}
+game_queues = {}
 
 origins = [
     "http://localhost",
@@ -35,7 +36,6 @@ EVENT_QUEUE = asyncio.Queue()
 async def index():
     with open('static/dist/index.html') as f:
         contents = f.read()
-        print(contents)
         return contents
 
 
@@ -65,6 +65,8 @@ async def create_game(game_to_create: Game_to_create):
 
     game = Game(user.id)
     games[game_number] = game
+    game_queue = asyncio.Queue()
+    game_queues[game_number] = game_queue
     user.game_id = game_number
     return {
         'user_id': f'{user.id}',
@@ -87,7 +89,13 @@ async def join_game(joinable: JoinGame):
     players[user.id] = user
     # TODO ensure that we only add the player if the game is in 'SETUP' status
     game.add_player(user.id)
-    EVENT_QUEUE.put(f'{player_name} joined the game {game_id}')
+    EVENT_QUEUE.put(
+        {
+            'type': 'GAME',
+            'message': f'{player_name} joined the game {game_id}',
+            'game_id': f'{game_id}'
+        }
+    )
     return {
         'user_id': f'{user.id}',
         'players': f'{game.get_players()}',
@@ -113,6 +121,18 @@ async def event_stream():
 
 app.mount('/static', StaticFiles(directory='static/dist'), name='static')
 
+
+async def worker(queue):
+    while True:
+        event = await queue.get()
+        print(f'{event}')
+        if (event.type == 'GAME'):
+            # TODO make sure game/queue exists
+            game_queue = game_queues[event.game_id]
+            game = games[game_id]
+            game_queue.put(game)
+
+        queue.task_done()
 
 @app.on_event('shutdown')
 async def shutdown():

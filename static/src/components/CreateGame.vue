@@ -19,8 +19,9 @@ export default {
   methods: {
     createGame: function () {
       console.log('createGame', this.playerName)
-      createGame({userName: this.playerName}).then(r => {
-        console.log('r', r)
+      createGame({userName: this.playerName}).then(results => {
+        const { game_id } = results
+        this.$router.push({name: 'game-lobby', params: {game_id}})
       })
     },
   }

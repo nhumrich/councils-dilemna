@@ -7,11 +7,9 @@ class User:
     money = 8
     power = 8
 
-    def __init__(self, name, money, power):
+    def __init__(self, name):
         self.id = str(uuid4())
         self.name = name
-        self.money = money
-        self.power = power
 
     def spend_money(amount_to_spend):
         # TODO prevent negative

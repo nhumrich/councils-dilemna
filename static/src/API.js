@@ -14,8 +14,13 @@ export function spendMoney ({playerId, amount, destination}) {
   })
 }
 
+function fetchWrapper(url, options) {
+  return fetch(url, options)
+    .then(response => response.json())
+}
+
 export function createGame({userName}) {
-  return fetch(`${API_BASE}/create_game`, {
+  return fetchWrapper(`${API_BASE}/create_game`, {
     method: 'POST',
     body: JSON.stringify({
       user_name: userName
@@ -24,7 +29,7 @@ export function createGame({userName}) {
 }
 
 export function joinGame({userName, gameId}) {
-  return fetch(`${API_BASE}/join_game`, {
+  return fetchWrapper(`${API_BASE}/join_game`, {
     method: 'POST',
     body: JSON.stringify({
       player_name: userName,

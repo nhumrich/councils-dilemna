@@ -91,7 +91,8 @@ async def join_game(joinable: JoinGame):
     return {
         'user_id': f'{user.id}',
         'players': f'{game.get_players()}',
-        'game_owner': f'{game.get_owner_id()}'
+        'game_owner': f'{game.get_owner_id()}',
+        'game_id': f'{game_id}'
     }
 
 

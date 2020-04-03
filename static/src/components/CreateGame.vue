@@ -5,17 +5,11 @@
     <button v-on:click="createGame">
       Create game
     </button>
-    <h2>Join a game</h2>
-    <input placeholder='house name' v-model='playerName'>
-    <input placeholder='game number' v-model='gameNumber'>
-    <button v-on:click="joinGame">
-      Join Game
-    </button>
   </div>
 </template>
 
 <script>
-import { createGame, joinGame } from '../API.js'
+import { createGame } from '../API.js'
 export default {
   name: 'CreateGame',
   data: () => ({
@@ -25,16 +19,11 @@ export default {
   methods: {
     createGame: function () {
       console.log('createGame', this.playerName)
-      createGame({userName: this.playerName}).then(r => {
-        console.log('r', r)
+      createGame({userName: this.playerName}).then(results => {
+        const { game_id } = results
+        this.$router.push({name: 'game-lobby', params: {game_id}})
       })
     },
-    joinGame: function () {
-      joinGame({userName: this.playerName, gameId: this.gameNumber}).then(r => {
-        console.log('r', r)
-      })
-
-    }
   }
 }
 

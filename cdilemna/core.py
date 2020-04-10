@@ -4,6 +4,7 @@ import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route, Mount
 from sse_starlette.sse import EventSourceResponse
 from starlette.responses import JSONResponse, HTMLResponse
@@ -22,7 +23,8 @@ players = {}
 game_queues = {}
 
 middleware = [
-    Middleware(TrustedHostMiddleware, allowed_hosts=['localhost', '*.example.com'])
+    Middleware(TrustedHostMiddleware, allowed_hosts=['localhost', '*']),
+    Middleware(CORSMiddleware, allow_origins=['*'])
 ]
 
 RUNNING = True
@@ -33,7 +35,6 @@ async def index(request):
     with open('static/dist/index.html') as f:
         contents = f.read()
         return HTMLResponse(contents)
-
 
 async def spend(request: Request):
     body = await request.json()

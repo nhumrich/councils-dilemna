@@ -103,50 +103,68 @@ async def join_game(joinable: JoinGame):
         'game_id': f'{game_id}'
     }
 
-@app.websocket('/ws/game/{game_id}')
-async def websocket_endpoint(websocket: WebSocket, game_id: int):
-    await websocket.accept()
-    game_queue = game_queues[game_id]
-    game = games[game_id]
-    await websocket.send_json(game.__dict__)
-    while True:
-        await asyncio.sleep(5)
-        message = {'message': 'hello'}
-        await websocket.send_json(message)
-        # event = await game_queue.get()
-        # await websocket.send_text(f'{event}')
-        # game_queue.task_done()
+# @app.websocket('/ws/game/{game_id}')
+# async def websocket_endpoint(websocket: WebSocket, game_id: int):
+#     await websocket.accept()
+#     game_queue = game_queues[game_id]
+#     game = games[game_id]
+#     await websocket.send_json(game.__dict__)
+#     while True:
+#         await asyncio.sleep(5)
+#         message = {'message': 'hello'}
+#         await websocket.send_json(message)
+#         # event = await game_queue.get()
+#         # await websocket.send_text(f'{event}')
+#         # game_queue.task_done()
 
-
-async def estream():
+async def game_stream(game_id):
     try:
         while RUNNING:
-            next_event = await EVENT_QUEUE.get()
-            print('got event', json.dumps(next_event).encode())
+            game_queue = game_queues[game_id]
+            game = games[game_id]
+            next_event = await game_queue.get()
             yield json.dumps(next_event).encode() + b'\n'
     except asyncio.CancelledError as error:
         pass
 
+@app.get('/api/game/{game_id}')
+async def game_stream(game_id: int):
+    return StreamingResponse(game_stream(game_id), media_type='text/event-stream')
+
+async def estream():
+    try:
+        while RUNNING:
+            await asyncio.sleep(5)
+            # next_event = await EVENT_QUEUE.get()
+            next_event = {'message': 'your mom'}
+            print('got event', json.dumps(next_event).encode())
+            yield json.dumps({'type':'http.response.body', 'body': next_event, 'more_body': True}).encode() + b'\r\n'
+    except asyncio.CancelledError as error:
+        pass
 
 @app.get('/api/event_stream')
 async def event_stream():
     return StreamingResponse(estream(), media_type='text/event-stream')
 
-
 app.mount('/static', StaticFiles(directory='static/dist'), name='static')
 
-
 async def worker(queue):
+    print('worker started')
     while True:
         event = await queue.get()
         print(f'{event}')
         if (event.type == 'GAME'):
+            print('event going to game queue')
             # TODO make sure game/queue exists
             game_queue = game_queues[event.game_id]
             game = games[game_id]
             await game_queue.put(game)
 
         queue.task_done()
+
+@app.on_event('startup')
+async def startup():
+    asyncio.create_task(worker(EVENT_QUEUE))
 
 @app.on_event('shutdown')
 async def shutdown():

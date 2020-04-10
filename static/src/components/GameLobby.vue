@@ -10,17 +10,25 @@ export default {
   name: 'GameLobby',
   mounted: function () {
     const game_id = this.$route.params.game_id
-    this.gameSub$ = createGame$(game_id).subscribe(
-      (game) => {
-        console.log('game sub', game)
-      },
-      err => {
-        console.error(err)
-      }
-    )
+    window.gameSource = createGame$(game_id)
+    this.gameSource = window.gameSource
+    this.gameSource.onmessage = function (event) {
+      console.log('event', event)
+    }
+    this.gameSource.addEventListener(event, function (test) {
+      console.log('test', test)
+    })
+    // this.gameSub$ = createGame$(game_id).subscribe(
+    //   (game) => {
+    //     console.log('game sub', game)
+    //   },
+    //   err => {
+    //     console.error(err)
+    //   }
+    // )
   },
   beforeDestroy: function () {
-    this.gameSub$.unsubscribe()
+    // this.gameSource.close()
   }
 }
 </script>

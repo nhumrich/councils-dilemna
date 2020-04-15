@@ -1,5 +1,8 @@
 import asyncio
 import asyncio
+import itertools
+from uuid import uuid4
+
 import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
@@ -20,6 +23,7 @@ app = Starlette()
 
 games = {}
 players = {}
+connections = {}
 game_queues = {}
 
 middleware = [
@@ -35,6 +39,7 @@ async def index(request):
     with open('static/dist/index.html') as f:
         contents = f.read()
         return HTMLResponse(contents)
+
 
 async def spend(request: Request):
     body = await request.json()
@@ -110,12 +115,16 @@ async def game_stream(request: Request):
 
 async def estream():
     try:
+        connection = asyncio.Queue()
+        uuid = uuid4()
+        connections[uuid] = connection
         while RUNNING:
-            # next_event = {'message': 'your mom'} 
-            next_event = await EVENT_QUEUE.get()
+            # await asyncio.sleep(2)
+            # next_event = {'message': 'your mom'}
+            next_event = await connection.get()
             print('got event', next_event)
             yield dict(data=next_event)
-            EVENT_QUEUE.task_done()
+            connection.task_done()
     except asyncio.CancelledError as error:
         pass
 
@@ -126,9 +135,12 @@ async def event_stream(request: Request):
 
 async def worker(queue):
     print('worker started')
-    # while True:
-        # event = await queue.get()
-        # print(f'{event}')
+    while True:
+        await asyncio.sleep(2)
+        event = await queue.get()
+        print(f'{event}')
+        for i, c in connections.items():
+            await c.put(event)
         # if (event[type] == 'GAME'):
         #     print('event going to game queue')
         #     # TODO make sure game/queue exists
@@ -138,8 +150,13 @@ async def worker(queue):
         #
         # queue.task_done()
 
+async def test_worker(queue):
+    for count in itertools.count():
+        await asyncio.sleep(3)
+        await EVENT_QUEUE.put({'message': 'your mom', 'count': count})
 
 async def startup():
+    asyncio.create_task(test_worker(EVENT_QUEUE))
     asyncio.create_task(worker(EVENT_QUEUE))
 
 

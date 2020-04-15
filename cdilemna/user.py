@@ -7,8 +7,8 @@ class User:
     money = 8
     power = 8
 
-    def __init__(self, name, incoming_id):
-        if incoming_id:
+    def __init__(self, name, incoming_id = None):
+        if incoming_id is not None:
             self.id = incoming_id
         else:
             self.id = str(uuid4())

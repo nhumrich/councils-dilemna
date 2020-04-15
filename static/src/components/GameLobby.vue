@@ -5,8 +5,20 @@
 </template>
 
 <script>
+import { game$ } from '../API.js'
 export default {
-  name: 'GameLobby'
+  name: 'GameLobby',
+  mounted: function () {
+    const game_id = this.$route.params.game_id
+    this.gameSub = game$(game_id).subscribe(
+      (e) => {
+        console.log('sub', e)
+      }
+    )
+  },
+  beforeDestroy: function () {
+    this.gameSub.unsubscribe()
+  }
 }
 </script>
 <style scoped>

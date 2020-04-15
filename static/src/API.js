@@ -1,3 +1,5 @@
+import { Subject } from 'rxjs'
+import { tap } from 'rxjs/operators'
 const API_BASE = process.env.NODE_ENV === 'production' ? './api' : 'http://localhost:8000/api'
 
 export function spendMoney ({playerId, amount, destination}) {
@@ -19,21 +21,38 @@ function fetchWrapper(url, options) {
     .then(response => response.json())
 }
 
-export function createGame({userName}) {
+export function createGame({userName, playerId}) {
+  const body = {user_name: userName}
+  if (playerId) {
+    body.user_id = playerId
+  }
   return fetchWrapper(`${API_BASE}/create_game`, {
     method: 'POST',
-    body: JSON.stringify({
-      user_name: userName
-    })
+    body: JSON.stringify(body)
   })
 }
 
-export function joinGame({userName, gameId}) {
+export function joinGame({userName, gameId, playerId}) {
+  const body = {
+    user_name: userName,
+    game_id: gameId,
+  }
+  if (playerId) {
+    body.player_id = playerId
+  }
   return fetchWrapper(`${API_BASE}/join_game`, {
     method: 'POST',
-    body: JSON.stringify({
-      player_name: userName,
-      game_id: gameId
-    })
+    body: JSON.stringify(body)
   })
+}
+
+export function game$() {
+  const subject = new Subject()
+  const es = new EventSource(`${API_BASE}/event_stream`)
+  es.onmessage = function (event) {
+    subject.next(event)
+  }
+  return subject.asObservable().pipe(
+    tap(e => console.log('tap', e))
+  )
 }

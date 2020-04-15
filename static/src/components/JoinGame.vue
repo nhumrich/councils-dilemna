@@ -19,9 +19,10 @@ export default {
   }),
   methods: {
     joinGame: function () {
-      joinGame({userName: this.playerName, gameId: this.gameNumber}).then(results => {
-        console.log('results', results)
-        const { game_id } = results
+      const playerId = localStorage.getItem('player_id')
+      joinGame({userName: this.playerName, gameId: this.gameNumber, playerId}).then(results => {
+        const { game_id, user_id } = results
+        localStorage.setItem('player_id', user_id)
         this.$router.push({name: 'game-lobby', params: {game_id}})
       })
     }

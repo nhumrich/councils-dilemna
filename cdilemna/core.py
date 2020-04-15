@@ -46,7 +46,6 @@ async def spend(request: Request):
 
 async def create_game(request: Request):
     body = await request.json()
-    print(body)
     user_name = body.get('user_name')
     user_id = body.get('user_id')
     game_number = random.randint(100000, 999999)
@@ -72,8 +71,8 @@ async def join_game(request: Request):
     body = await request.json()
     player_name = body.get('player_name')
     game_id = body.get('game_id')
-    game = games[game_id]
     # TODO ensure game exists
+    game = games[int(game_id)]
     user = User(player_name)
     players[user.id] = user
     # TODO ensure that we only add the player if the game is in 'SETUP' status
@@ -91,20 +90,6 @@ async def join_game(request: Request):
         'game_owner': f'{game.get_owner_id()}',
         'game_id': f'{game_id}'
     })
-
-# @app.websocket('/ws/game/{game_id}')
-# async def websocket_endpoint(websocket: WebSocket, game_id: int):
-#     await websocket.accept()
-#     game_queue = game_queues[game_id]
-#     game = games[game_id]
-#     await websocket.send_json(game.__dict__)
-#     while True:
-#         await asyncio.sleep(5)
-#         message = {'message': 'hello'}
-#         await websocket.send_json(message)
-#         # event = await game_queue.get()
-#         # await websocket.send_text(f'{event}')
-#         # game_queue.task_done()
 
 async def game_stream(game_id):
     try:
@@ -125,9 +110,7 @@ async def game_stream(request: Request):
 async def estream():
     try:
         while RUNNING:
-            await asyncio.sleep(2)
-            # next_event = await EVENT_QUEUE.get()
-            next_event = {'message': 'your mom'}
+            next_event = await EVENT_QUEUE.get()
             print('got event', next_event)
             yield dict(data=next_event)
     except asyncio.CancelledError as error:
@@ -143,7 +126,7 @@ async def worker(queue):
     while True:
         event = await queue.get()
         print(f'{event}')
-        if (event.type == 'GAME'):
+        if (event[type] == 'GAME'):
             print('event going to game queue')
             # TODO make sure game/queue exists
             game_queue = game_queues[event.game_id]
@@ -164,8 +147,8 @@ async def shutdown():
 routes = [
     Route('/', index),
     Route('/api/spend', spend),
-    Route('/api/create_game', create_game),
-    Route('/api/join_game', join_game),
+    Route('/api/create_game', create_game, methods=['POST']),
+    Route('/api/join_game', join_game, methods=['POST']),
     Route('/api/event_stream', endpoint=event_stream),
     Route('/api/game/{game_id}', game_stream),
     Mount('/static', StaticFiles(directory='static/dist'), name='static')

@@ -19,9 +19,10 @@ export default {
   methods: {
     createGame: function () {
       console.log('createGame', this.playerName)
-      const playerName = localStorage.getItem('player_id')
-      createGame({userName: this.playerName, playerName}).then(results => {
-        const { game_id } = results
+      const playerId = localStorage.getItem('player_id')
+      createGame({userName: this.playerName, playerId}).then(results => {
+        const { game_id, user_id } = results
+        localStorage.setItem('player_id', user_id)
         this.$router.push({name: 'game-lobby', params: {game_id}})
       })
     },

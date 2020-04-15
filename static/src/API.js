@@ -1,5 +1,6 @@
+import { Subject } from 'rxjs'
+import { tap } from 'rxjs/operators'
 const API_BASE = process.env.NODE_ENV === 'production' ? './api' : 'http://localhost:8000/api'
-// const WS_BASE = process.env.NODE_ENV === 'production' ? `ws://${window.location.origin}/ws` : 'ws://localhost:8000/ws'
 
 export function spendMoney ({playerId, amount, destination}) {
   console.log('playerId', playerId)
@@ -41,6 +42,13 @@ export function joinGame({userName, gameId}) {
   })
 }
 
-export function createGame$() {
-  return new EventSource(`${API_BASE}/event_stream`)
+export function game$() {
+  const subject = new Subject()
+  const es = new EventSource(`${API_BASE}/event_stream`)
+  es.onmessage = function (event) {
+    subject.next(event)
+  }
+  return subject.asObservable().pipe(
+    tap(e => console.log('tap', e))
+  )
 }

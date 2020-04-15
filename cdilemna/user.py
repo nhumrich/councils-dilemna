@@ -7,8 +7,11 @@ class User:
     money = 8
     power = 8
 
-    def __init__(self, name):
-        self.id = str(uuid4())
+    def __init__(self, name, incoming_id):
+        if incoming_id:
+            self.id = incoming_id
+        else:
+            self.id = str(uuid4())
         self.name = name
 
     def spend_money(amount_to_spend):

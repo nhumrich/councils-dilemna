@@ -20,12 +20,14 @@ function fetchWrapper(url, options) {
     .then(response => response.json())
 }
 
-export function createGame({userName}) {
+export function createGame({userName, playerId}) {
+  const body = {user_name: userName}
+  if (playerId) {
+    body.user_id = playerId
+  }
   return fetchWrapper(`${API_BASE}/create_game`, {
     method: 'POST',
-    body: JSON.stringify({
-      user_name: userName
-    })
+    body: JSON.stringify(body)
   })
 }
 

@@ -46,9 +46,11 @@ async def spend(request: Request):
 
 async def create_game(request: Request):
     body = await request.json()
+    print(body)
     user_name = body.get('user_name')
+    user_id = body.get('user_id')
     game_number = random.randint(100000, 999999)
-    user = User(user_name)
+    user = User(user_name, user_id)
     players[user.id] = user
     while game_number in games:
         game_number = random.randint(100000, 999999)

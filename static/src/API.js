@@ -32,13 +32,17 @@ export function createGame({userName, playerId}) {
   })
 }
 
-export function joinGame({userName, gameId}) {
+export function joinGame({userName, gameId, playerId}) {
+  const body = {
+    user_name: userName,
+    game_id: gameId,
+  }
+  if (playerId) {
+    body.player_id = playerId
+  }
   return fetchWrapper(`${API_BASE}/join_game`, {
     method: 'POST',
-    body: JSON.stringify({
-      player_name: userName,
-      game_id: gameId
-    })
+    body: JSON.stringify(body)
   })
 }
 

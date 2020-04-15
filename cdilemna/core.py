@@ -70,10 +70,11 @@ async def create_game(request: Request):
 async def join_game(request: Request):
     body = await request.json()
     player_name = body.get('player_name')
+    player_id = body.get('player_id')
     game_id = body.get('game_id')
     # TODO ensure game exists
     game = games[int(game_id)]
-    user = User(player_name)
+    user = User(player_name, player_id)
     players[user.id] = user
     # TODO ensure that we only add the player if the game is in 'SETUP' status
     game.add_player(user.id)

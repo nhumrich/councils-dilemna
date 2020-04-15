@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs'
-import { tap } from 'rxjs/operators'
+import { tap, pluck } from 'rxjs/operators'
 const API_BASE = process.env.NODE_ENV === 'production' ? './api' : 'http://localhost:8000/api'
 
 export function spendMoney ({playerId, amount, destination}) {
@@ -34,7 +34,7 @@ export function createGame({userName, playerId}) {
 
 export function joinGame({userName, gameId, playerId}) {
   const body = {
-    user_name: userName,
+    player_name: userName,
     game_id: gameId,
   }
   if (playerId) {
@@ -53,6 +53,7 @@ export function game$() {
     subject.next(event)
   }
   return subject.asObservable().pipe(
-    tap(e => console.log('tap', e))
+    pluck('data'),
+    tap(data => console.log('data tap', data))
   )
 }

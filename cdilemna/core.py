@@ -111,9 +111,11 @@ async def game_stream(request: Request):
 async def estream():
     try:
         while RUNNING:
+            # next_event = {'message': 'your mom'} 
             next_event = await EVENT_QUEUE.get()
             print('got event', next_event)
             yield dict(data=next_event)
+            EVENT_QUEUE.task_done()
     except asyncio.CancelledError as error:
         pass
 
@@ -124,17 +126,17 @@ async def event_stream(request: Request):
 
 async def worker(queue):
     print('worker started')
-    while True:
-        event = await queue.get()
-        print(f'{event}')
-        if (event[type] == 'GAME'):
-            print('event going to game queue')
-            # TODO make sure game/queue exists
-            game_queue = game_queues[event.game_id]
-            game = games[game_id]
-            await game_queue.put(game)
-
-        queue.task_done()
+    # while True:
+        # event = await queue.get()
+        # print(f'{event}')
+        # if (event[type] == 'GAME'):
+        #     print('event going to game queue')
+        #     # TODO make sure game/queue exists
+        #     game_queue = game_queues[event.game_id]
+        #     game = games[game_id]
+        #     await game_queue.put(game)
+        #
+        # queue.task_done()
 
 
 async def startup():

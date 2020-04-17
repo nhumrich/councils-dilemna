@@ -23,8 +23,8 @@ app = Starlette()
 
 games = {}
 players = {}
+game_connections = {'3111': {}}
 connections = {}
-game_queues = {}
 
 middleware = [
     Middleware(TrustedHostMiddleware, allowed_hosts=['localhost', '*']),
@@ -61,8 +61,8 @@ async def create_game(request: Request):
 
     game = Game(user.id)
     games[game_number] = game
-    game_queue = asyncio.Queue()
-    game_queues[game_number] = game_queue
+    # game_queue = asyncio.Queue()
+    # game_queues[game_number] = game_queue
     user.game_id = game_number
     return JSONResponse({
         'user_id': f'{user.id}',
@@ -98,20 +98,28 @@ async def join_game(request: Request):
     })
 
 async def game_stream(game_id):
+    print(f'type {type(game_id)}')
+    print(f'game_stream requested {game_id}')
+    connection = asyncio.Queue()
+    uuid = uuid4()
+    if not game_id in game_connections:
+        game_connections[game_id] = {}
+    print(f'adding \'{uuid}\' to game_connections')
+    game_connections[game_id][f'{uuid}'] = connection
     try:
+        fullgame = await get_full_game_for_frontend(game_id)
+        yield dict(data=fullgame)
         while RUNNING:
-            game_queue = game_queues[game_id]
-            game = games[game_id]
-            next_event = await game_queue.get()
-            yield next_event
+            next_event = await connection.get()
+            print('game steam', next_event)
+            yield dict(data=next_event)
+            connection.task_done()
     except asyncio.CancelledError as error:
         pass
 
-
-async def game_stream(request: Request):
+async def game_event_stream(request: Request):
     game_id = request.path_params.get('game_id')
     return EventSourceResponse(game_stream(game_id), media_type='text/event-stream')
-
 
 async def estream():
     try:
@@ -128,35 +136,51 @@ async def estream():
     except asyncio.CancelledError as error:
         pass
 
-
 async def event_stream(request: Request):
     return EventSourceResponse(estream())
 
+async def get_full_game_for_frontend(game_id):
+    game_id_as_number = int(game_id)
+    if game_id_as_number in games:
+        game_to_return = games[game_id_as_number]
+        return json.dumps({'type': 'GAME', 'game': game_to_return.__dict__})
+    else:
+        return json.dumps({'type': 'GAME', 'game':{}})
 
 async def worker(queue):
     print('worker started')
     while True:
         await asyncio.sleep(2)
         event = await queue.get()
-        print(f'{event}')
-        for i, c in connections.items():
-            await c.put(event)
-        # if (event[type] == 'GAME'):
-        #     print('event going to game queue')
-        #     # TODO make sure game/queue exists
-        #     game_queue = game_queues[event.game_id]
-        #     game = games[game_id]
-        #     await game_queue.put(game)
-        #
-        # queue.task_done()
+        parsed_event = json.loads(event)
+        print(f'got event: {event}')
+        if ('type' in parsed_event):
+            if ('game_id' in parsed_event):
+                print('event going to game queue')
+                game_id = parsed_event['game_id']
+                print(f'gameid {game_id}')
+                if game_id in game_connections:
+                    print('about to itterate in worker')
+                    for key, conn in game_connections[game_id].items():
+                        print(f'key: {key}')
+                        await conn.put(event)
+        else:
+            for i, c in connections.items():
+                await c.put(event)
 
 async def test_worker(queue):
     for count in itertools.count():
         await asyncio.sleep(3)
-        await EVENT_QUEUE.put({'message': 'your mom', 'count': count})
+        await EVENT_QUEUE.put(json.dumps({'message': 'your mom', 'count': count}))
+
+async def test_worker_2(queue):
+    for count in itertools.count():
+        await asyncio.sleep(3)
+        await EVENT_QUEUE.put(json.dumps({'type': 'GAME', 'game_id': '3111', 'count': count}))
 
 async def startup():
     asyncio.create_task(test_worker(EVENT_QUEUE))
+    asyncio.create_task(test_worker_2(EVENT_QUEUE))
     asyncio.create_task(worker(EVENT_QUEUE))
 
 
@@ -170,7 +194,7 @@ routes = [
     Route('/api/create_game', create_game, methods=['POST']),
     Route('/api/join_game', join_game, methods=['POST']),
     Route('/api/event_stream', endpoint=event_stream),
-    Route('/api/game/{game_id}', game_stream),
+    Route('/api/game_stream/{game_id}', endpoint=game_event_stream),
     Mount('/static', StaticFiles(directory='static/dist'), name='static')
 ]
 app = Starlette(routes=routes, middleware=middleware, on_startup=[startup], on_shutdown=[shutdown])

@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs'
-import { tap, pluck } from 'rxjs/operators'
+import { map, tap, pluck, filter, finalize } from 'rxjs/operators'
 const API_BASE = process.env.NODE_ENV === 'production' ? './api' : 'http://localhost:8000/api'
 
 export function spendMoney ({playerId, amount, destination}) {
@@ -46,14 +46,25 @@ export function joinGame({userName, gameId, playerId}) {
   })
 }
 
-export function game$() {
+export function game$(gameId) {
   const subject = new Subject()
-  const es = new EventSource(`${API_BASE}/event_stream`)
+  const es = new EventSource(`${API_BASE}/game_stream/${gameId}`)
   es.onmessage = function (event) {
     subject.next(event)
   }
   return subject.asObservable().pipe(
     pluck('data'),
-    tap(data => console.log('data tap', data))
+    filter(data => {
+      console.log('raw', data)
+      try {
+        const jsonData = JSON.parse(data)
+        return jsonData
+      } catch (e) {
+        return false
+      }
+    }),
+    map(data => JSON.parse(data)),
+    tap(data => console.log('data tap', data, typeof(data))),
+    finalize(() => es.close())
   )
 }

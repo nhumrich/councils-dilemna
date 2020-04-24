@@ -6,7 +6,7 @@ Vue.use(VueRouter)
 const Setup = () => import(/* webpackChunkName: "setup" */'./components/Setup.vue')
 const CreateGame = () => import(/* webpackChunkName: "CreateGame" */'./components/CreateGame.vue')
 const JoinGame = () => import(/* webpackChunkName: "JoinGame" */'./components/JoinGame.vue')
-const GameLobby = () => import(/* webpackChunkName: "GameLobby" */'./components/GameLobby.vue')
+const GameLobby = () => import(/* webpackChunkName: "GameLobby" */'./components/GameLobby/GameLobby.vue')
 
 export default new VueRouter({
   mode: 'history',

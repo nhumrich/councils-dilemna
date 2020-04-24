@@ -13,10 +13,13 @@ class User:
         else:
             self.id = str(uuid4())
         self.name = name
+        self.money = 8
+        self.power = 8
 
     def spend_money(amount_to_spend):
+        print('spend_money', amount_to_spend)
         # TODO prevent negative
-        self.money = self.money - amount_to_spend
+        # self.money = self.money - amount_to_spend
         return self.money
 
     def gain_money(amount_to_gain):
@@ -31,3 +34,6 @@ class User:
     def cower(power_to_gain):
         self.power = self.power + power_to_gain
         return self.power
+
+    def join_game(game_id):
+        self.game_id = game_id

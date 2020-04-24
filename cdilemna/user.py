@@ -13,6 +13,8 @@ class User:
         else:
             self.id = str(uuid4())
         self.name = name
+        self.money = 8
+        self.power = 8
 
     def spend_money(amount_to_spend):
         # TODO prevent negative

@@ -2,7 +2,7 @@ import random
 
 class Game:
     def __init__(self, owner_id):
-        self.players = []
+        self.players = [f'{owner_id}']
         self.seating = {}
         self.owner_id = owner_id
         self.status = 'SETUP'

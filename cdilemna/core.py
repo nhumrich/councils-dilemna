@@ -22,7 +22,7 @@ import random
 app = Starlette()
 
 games = {}
-players = {}
+PLAYERS = {}
 game_connections = {'3111': {}}
 connections = {}
 
@@ -48,6 +48,9 @@ async def spend(request: Request):
     await EVENT_QUEUE.put(message)
     return JSONResponse(message)
 
+async def player(request: Request):
+    player_id = request.path_params.get('player_id')
+    return JSONResponse(PLAYERS[player_id])
 
 async def create_game(request: Request):
     body = await request.json()
@@ -55,7 +58,7 @@ async def create_game(request: Request):
     user_id = body.get('user_id')
     game_number = random.randint(100000, 999999)
     user = User(user_name, user_id)
-    players[user.id] = user
+    PLAYERS[user.id] = user
     while game_number in games:
         game_number = random.randint(100000, 999999)
 
@@ -80,15 +83,15 @@ async def join_game(request: Request):
     # TODO ensure game exists
     game = games[int(game_id)]
     user = User(player_name, player_id)
-    players[user.id] = user
+    PLAYERS[user.id] = user
     # TODO ensure that we only add the player if the game is in 'SETUP' status
     game.add_player(user.id)
-    await EVENT_QUEUE.put(
-        {
+    await EVENT_QUEUE.put(json.dumps({
             'type': 'GAME',
+            'subtype': 'PLAYER_CHANGE',
             'message': f'{player_name} joined the game {game_id}',
             'game_id': f'{game_id}'
-        }
+        })
     )
     return JSONResponse({
         'user_id': f'{user.id}',
@@ -111,8 +114,16 @@ async def game_stream(game_id):
         yield dict(data=fullgame)
         while RUNNING:
             next_event = await connection.get()
+            parsed_event = json.loads(next_event)
             print('game steam', next_event)
             yield dict(data=next_event)
+            if (parsed_event['subtype'] == 'PLAYER_CHANGE'):
+                print('oh boy')
+                full_game_players = await get_players_in_game_for_frontend(game_id)
+                message = {
+                    'players': full_game_players
+                }
+                yield dict(data=json.dumps(message))
             connection.task_done()
     except asyncio.CancelledError as error:
         pass
@@ -143,9 +154,25 @@ async def get_full_game_for_frontend(game_id):
     game_id_as_number = int(game_id)
     if game_id_as_number in games:
         game_to_return = games[game_id_as_number]
-        return json.dumps({'type': 'GAME', 'game': game_to_return.__dict__})
+        full_game_players = await get_players_in_game_for_frontend(game_id)
+        return json.dumps({'type': 'GAME', 'game': game_to_return.__dict__, 'players': full_game_players})
     else:
         return json.dumps({'type': 'GAME', 'game':{}})
+
+async def get_players_in_game_for_frontend(game_id):
+    game_id_as_number = int(game_id)
+    full_game_players = []
+    if game_id_as_number in games:
+        game_to_return = games[game_id_as_number]
+        game_players = game_to_return.get_players()
+        for player in game_players:
+            full_player = PLAYERS[player]
+            if full_player is not None:
+                full_game_players.append(full_player.__dict__)
+        return full_game_players
+    else:
+        return full_game_players
+
 
 async def worker(queue):
     print('worker started')
@@ -179,8 +206,8 @@ async def test_worker_2(queue):
         await EVENT_QUEUE.put(json.dumps({'type': 'GAME', 'game_id': '3111', 'count': count}))
 
 async def startup():
-    asyncio.create_task(test_worker(EVENT_QUEUE))
-    asyncio.create_task(test_worker_2(EVENT_QUEUE))
+    # asyncio.create_task(test_worker(EVENT_QUEUE))
+    # asyncio.create_task(test_worker_2(EVENT_QUEUE))
     asyncio.create_task(worker(EVENT_QUEUE))
 
 
@@ -195,6 +222,7 @@ routes = [
     Route('/api/join_game', join_game, methods=['POST']),
     Route('/api/event_stream', endpoint=event_stream),
     Route('/api/game_stream/{game_id}', endpoint=game_event_stream),
+    Route('/api/player/{player_id}', player),
     Mount('/static', StaticFiles(directory='static/dist'), name='static')
 ]
 app = Starlette(routes=routes, middleware=middleware, on_startup=[startup], on_shutdown=[shutdown])

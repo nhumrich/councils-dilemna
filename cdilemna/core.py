@@ -43,9 +43,20 @@ async def index(request):
 
 async def spend(request: Request):
     body = await request.json()
-    message = {'message': f'Player {body.get("current_player")} spent '
-                          f'{body.get("amount")} and sent it to {body.get("destination")}'}
-    await EVENT_QUEUE.put(message)
+    player_id = body.get('player_id')
+    amount = body.get('amount')
+    destination = body.get('destination')
+    player = PLAYERS[player_id]
+    # player.spend_money(amount)
+    message = {
+        'type': 'GAME',
+        'subtype': 'PLAYER_CHANGE',
+        'amount': amount,
+        'destination': destination,
+        'message': f'Player {player_id} spent {amount} and sent it to {destination}',
+        'game_id': f'{player.game_id}'
+    }
+    await EVENT_QUEUE.put(json.dumps(message))
     return JSONResponse(message)
 
 async def player(request: Request):
@@ -86,6 +97,7 @@ async def join_game(request: Request):
     PLAYERS[user.id] = user
     # TODO ensure that we only add the player if the game is in 'SETUP' status
     game.add_player(user.id)
+    user.join_game(game.id)
     await EVENT_QUEUE.put(json.dumps({
             'type': 'GAME',
             'subtype': 'PLAYER_CHANGE',
@@ -217,7 +229,7 @@ async def shutdown():
 
 routes = [
     Route('/', index),
-    Route('/api/spend', spend),
+    Route('/api/spend', spend, methods=['POST']),
     Route('/api/create_game', create_game, methods=['POST']),
     Route('/api/join_game', join_game, methods=['POST']),
     Route('/api/event_stream', endpoint=event_stream),

@@ -1,16 +1,20 @@
 <template>
   <div class='game-lobby'>
     <h1>Welcome to the lobby for game: {{$route.params.game_id}} </h1>
-    <div>
-      Players: {{ JSON.stringify(players) }}
+    <div v-for='player in players' v-bind:key='player.id'  >
+      <Player :player="player"></Player>
     </div>
   </div>
 </template>
 
 <script>
-import { game$ } from '../API.js'
+import { game$ } from '../../API.js'
+import Player from './Player.vue'
 export default {
   name: 'GameLobby',
+  components: {
+    Player
+  },
   data: function () {
     return {
       players: [],

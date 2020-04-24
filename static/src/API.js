@@ -6,10 +6,10 @@ export function spendMoney ({playerId, amount, destination}) {
   console.log('playerId', playerId)
   console.log('amount', amount)
   console.log('destination', destination)
-  return fetch(`${API_BASE}/spend`, {
+  return fetchWrapper(`${API_BASE}/spend`, {
     method: 'POST',
     body: JSON.stringify({
-      current_player: playerId,
+      player_id: playerId,
       amount,
       destination
     }),

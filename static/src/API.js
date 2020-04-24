@@ -3,10 +3,40 @@ import { map, tap, pluck, filter, finalize } from 'rxjs/operators'
 const API_BASE = process.env.NODE_ENV === 'production' ? './api' : 'http://localhost:8000/api'
 
 export function spendMoney ({playerId, amount, destination}) {
-  console.log('playerId', playerId)
-  console.log('amount', amount)
-  console.log('destination', destination)
   return fetchWrapper(`${API_BASE}/spend`, {
+    method: 'POST',
+    body: JSON.stringify({
+      player_id: playerId,
+      amount,
+      destination
+    }),
+  })
+}
+
+export function gainMoney({playerId, amount, destination}) {
+  return fetchWrapper(`${API_BASE}/gain_money`, {
+    method: 'POST',
+    body: JSON.stringify({
+      player_id: playerId,
+      amount,
+      destination
+    }),
+  })
+}
+
+export function spendPower ({playerId, amount, destination}) {
+  return fetchWrapper(`${API_BASE}/spend_power`, {
+    method: 'POST',
+    body: JSON.stringify({
+      player_id: playerId,
+      amount,
+      destination
+    }),
+  })
+}
+
+export function gainPower({playerId, amount, destination}) {
+  return fetchWrapper(`${API_BASE}/gain_power`, {
     method: 'POST',
     body: JSON.stringify({
       player_id: playerId,

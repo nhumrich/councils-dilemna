@@ -4,14 +4,20 @@
       House name: {{player.name}}
     </div>
     <div>
-      starting money: {{player.money}}
+      starting power: {{player.power}}
+      <button v-on:click="subtractPower">
+        -
+      </button>
+      <button v-on:click="addPower">
+        +
+      </button>
     </div>
     <div>
-      starting power: {{player.power}}
+      starting money: {{player.money}}
       <button v-on:click="subtractMoney">
         -
       </button>
-      <button>
+      <button v-on:click="addMoney">
         +
       </button>
     </div>
@@ -19,7 +25,7 @@
 </template>
 
 <script>
-import { spendMoney } from '../../API.js'
+import { spendMoney, gainMoney, spendPower, gainPower } from '../../API.js'
 export default {
   name: 'Player',
   props: {
@@ -31,6 +37,15 @@ export default {
   methods: {
     subtractMoney: function() {
       spendMoney({playerId: this.player.id, amount: 1, destination: 'GAME_SETUP'})
+    },
+    addMoney: function() {
+      gainMoney({playerId: this.player.id, amount: 1, destination: 'GAME_SETUP'})
+    },
+    subtractPower: function() {
+      spendPower({playerId: this.player.id, amount: 1, destination: 'GAME_SETUP'})
+    },
+    addPower: function() {
+      gainPower({playerId: this.player.id, amount: 1, destination: 'GAME_SETUP'})
     }
   }
 }

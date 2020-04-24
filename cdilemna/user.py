@@ -16,24 +16,23 @@ class User:
         self.money = 8
         self.power = 8
 
-    def spend_money(amount_to_spend):
-        print('spend_money', amount_to_spend)
+    def spend_money(self, amount_to_spend):
         # TODO prevent negative
-        # self.money = self.money - amount_to_spend
+        self.money = self.money - amount_to_spend
         return self.money
 
-    def gain_money(amount_to_gain):
+    def gain_money(self, amount_to_gain):
         self.money = self.money + amount_to_gain
         return self.money
 
-    def flex(power_to_spend):
+    def spend_power(self, power_to_spend):
         # TODO prevent negative
-        self.power = self.power - self.power_to_spend
+        self.power = self.power - power_to_spend
         return self.power
 
-    def cower(power_to_gain):
+    def gain_power(self, power_to_gain):
         self.power = self.power + power_to_gain
         return self.power
 
-    def join_game(game_id):
+    def join_game(self, game_id):
         self.game_id = game_id

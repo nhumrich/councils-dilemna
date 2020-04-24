@@ -47,13 +47,71 @@ async def spend(request: Request):
     amount = body.get('amount')
     destination = body.get('destination')
     player = PLAYERS[player_id]
-    # player.spend_money(amount)
+    player.spend_money(amount)
     message = {
         'type': 'GAME',
         'subtype': 'PLAYER_CHANGE',
+        'currency': 'money',
         'amount': amount,
         'destination': destination,
-        'message': f'Player {player_id} spent {amount} and sent it to {destination}',
+        'message': f'Player {player_id} spent {amount} money and sent it to {destination}',
+        'game_id': f'{player.game_id}'
+    }
+    await EVENT_QUEUE.put(json.dumps(message))
+    return JSONResponse(message)
+
+async def gain_money(request: Request):
+    body = await request.json()
+    player_id = body.get('player_id')
+    amount = body.get('amount')
+    destination = body.get('destination')
+    player = PLAYERS[player_id]
+    player.gain_money(amount)
+    message = {
+        'type': 'GAME',
+        'subtype': 'PLAYER_CHANGE',
+        'currency': 'money',
+        'amount': amount,
+        'destination': destination,
+        'message': f'Player {player_id} gained {amount} money from {destination}',
+        'game_id': f'{player.game_id}'
+    }
+    await EVENT_QUEUE.put(json.dumps(message))
+    return JSONResponse(message)
+
+async def gain_power(request: Request):
+    body = await request.json()
+    player_id = body.get('player_id')
+    amount = body.get('amount')
+    destination = body.get('destination')
+    player = PLAYERS[player_id]
+    player.gain_power(amount)
+    message = {
+        'type': 'GAME',
+        'subtype': 'PLAYER_CHANGE',
+        'currency': 'power',
+        'amount': amount,
+        'destination': destination,
+        'message': f'Player {player_id} gained {amount} power from {destination}',
+        'game_id': f'{player.game_id}'
+    }
+    await EVENT_QUEUE.put(json.dumps(message))
+    return JSONResponse(message)
+
+async def spend_power(request: Request):
+    body = await request.json()
+    player_id = body.get('player_id')
+    amount = body.get('amount')
+    destination = body.get('destination')
+    player = PLAYERS[player_id]
+    player.spend_power(amount)
+    message = {
+        'type': 'GAME',
+        'subtype': 'PLAYER_CHANGE',
+        'currency': 'power',
+        'amount': amount,
+        'destination': destination,
+        'message': f'Player {player_id} sent {amount} power to {destination}',
         'game_id': f'{player.game_id}'
     }
     await EVENT_QUEUE.put(json.dumps(message))
@@ -230,6 +288,11 @@ async def shutdown():
 routes = [
     Route('/', index),
     Route('/api/spend', spend, methods=['POST']),
+    Route('/api/spend_power', spend_power, methods=['POST']),
+    # These two methods are only going to be usable when the game is in setup status
+    Route('/api/gain_money', gain_money, methods=['POST']),
+    Route('/api/gain_power', gain_power, methods=['POST']),
+    # The about two methods are only going to be usable when the game is in setup status
     Route('/api/create_game', create_game, methods=['POST']),
     Route('/api/join_game', join_game, methods=['POST']),
     Route('/api/event_stream', endpoint=event_stream),
